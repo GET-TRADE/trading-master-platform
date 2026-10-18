@@ -54,6 +54,12 @@ jobs:
             if [ $? -eq 0 ]; then echo "SIGNED: $apk"; else echo "ERROR: $apk is NOT signed - refusing to publish"; exit 1; fi
           done
 
+      - name: Upload APKs as workflow artifacts (fallback download path)
+        uses: actions/upload-artifact@v4
+        with:
+          name: signed-apks
+          path: release/*.apk
+
       - name: Create GitHub Release with APKs
         uses: softprops/action-gh-release@v1
         with:
