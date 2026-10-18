@@ -2,7 +2,7 @@ package com.tradingmaster.admin.ui.payments
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutFlow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -59,7 +59,7 @@ import com.tradingmaster.admin.ui.components.StatusChip
 import com.tradingmaster.admin.ui.theme.StatusApproved
 import com.tradingmaster.admin.ui.theme.StatusBlocked
 
-@OptIn(ExperimentalLayoutFlow::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PaymentsScreen(
     onBackClick: () -> Unit,

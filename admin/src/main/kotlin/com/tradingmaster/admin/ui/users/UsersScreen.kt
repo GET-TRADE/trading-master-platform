@@ -2,7 +2,7 @@ package com.tradingmaster.admin.ui.users
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutFlow
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -65,7 +65,7 @@ import com.tradingmaster.admin.ui.components.ErrorBanner
 import com.tradingmaster.admin.ui.components.LoadingState
 import com.tradingmaster.admin.ui.components.StatusChip
 
-@OptIn(ExperimentalLayoutFlow::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun UsersScreen(
     onBackClick: () -> Unit,
@@ -255,7 +255,7 @@ fun UsersScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutFlow::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun UserCard(
     user: AdminUser,

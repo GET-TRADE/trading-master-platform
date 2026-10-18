@@ -258,7 +258,7 @@ fun SignalDetailScreen(nav: NavController, symbol: String) {
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Text(analysis.analysis, fontSize = 12.sp)
+                        Text(analysis.analysis ?: "", fontSize = 12.sp)
                         if (analysis.risks.isNotEmpty()) {
                             Text("Identified Risks:", fontWeight = FontWeight.Bold, fontSize = 12.sp)
                             analysis.risks.forEach { BulletPoint(it) }

@@ -24,7 +24,7 @@ import com.tradingmaster.admin.ui.users.UsersScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate()
+        super.onCreate(savedInstanceState)
 
         val repository = AdminApp.instance.adminRepository
         val startDestination = if (repository.isSignedIn()) "dashboard" else "login"
