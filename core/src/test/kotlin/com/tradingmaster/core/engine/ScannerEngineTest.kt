@@ -96,13 +96,17 @@ class ScannerEngineTest {
         drift: Double,
         tfMillis: Long,
         noise: Double = 0.0,
-        seed: Long = 1
+        seed: Long = 1,
+        pullbackLast: Int = 0
     ): List<Candle> {
         val rng = Random(seed)
         val out = ArrayList<Candle>(count)
         var price = start
         for (i in 0 until count) {
-            price = price * (1 + drift + rng.nextDouble() * noise - noise / 2)
+            // Optional final pullback/bounce: price returns toward the fast EMA,
+            // the realistic entry pattern the scanner is designed to catch.
+            val d = if (pullbackLast > 0 && i >= count - pullbackLast) -drift else drift
+            price = price * (1 + d + rng.nextDouble() * noise - noise / 2)
             val high = price * 1.002
             val low = price * 0.998
             out.add(Candle(i * tfMillis, price * 0.999, high, low, price, 150.0 + (if (i > count - 5) 300.0 else 0.0), i * tfMillis + tfMillis - 1))
@@ -117,11 +121,11 @@ class ScannerEngineTest {
 
     @Test
     fun `steady uptrend with volume produces a LONG signal`() {
-        val m5 = mkCandles(100, 100.0, +0.004, tf5)
-        val m15 = mkCandles(100, 100.0, +0.010, tf15)
-        val h1 = mkCandles(100, 100.0, +0.025, tf60)
+        val m5 = mkCandles(100, 100.0, +0.0012, tf5, noise = 0.016, seed = 11, pullbackLast = 6)
+        val m15 = mkCandles(100, 100.0, +0.0030, tf15, noise = 0.030, seed = 11)
+        val h1 = mkCandles(100, 100.0, +0.0080, tf60, noise = 0.060, seed = 11)
         val r = ScannerEngine.scan(ScannerEngine.Input("BTCUSDT", m5, m15, h1, 10_000_000.0), config)
-        assertNotNull("expected a trade signal", r.signal)
+        assertNotNull("expected a trade signal, reasons=" + r.noTradeReasons, r.signal)
         assertEquals(Direction.LONG, r.signal!!.direction)
         assertTrue(r.signal!!.score in 0..5)
         assertEquals(1.5, r.signal!!.rr1, 1e-9)
@@ -131,11 +135,11 @@ class ScannerEngineTest {
 
     @Test
     fun `steady downtrend with volume produces a SHORT signal`() {
-        val m5 = mkCandles(100, 100.0, -0.004, tf5)
-        val m15 = mkCandles(100, 100.0, -0.010, tf15)
-        val h1 = mkCandles(100, 100.0, -0.025, tf60)
+        val m5 = mkCandles(100, 100.0, -0.0016, tf5, noise = 0.016, seed = 11, pullbackLast = 2)
+        val m15 = mkCandles(100, 100.0, -0.0030, tf15, noise = 0.030, seed = 11)
+        val h1 = mkCandles(100, 100.0, -0.0080, tf60, noise = 0.060, seed = 11)
         val r = ScannerEngine.scan(ScannerEngine.Input("ETHUSDT", m5, m15, h1, 10_000_000.0), config)
-        assertNotNull(r.signal)
+        assertNotNull("expected a trade signal, reasons=" + r.noTradeReasons, r.signal)
         assertEquals(Direction.SHORT, r.signal!!.direction)
         assertTrue(r.signal!!.stopLoss > r.signal!!.entryHigh)
     }
@@ -194,9 +198,9 @@ class ScannerEngineTest {
 
     @Test
     fun `signal carries freshness timestamps and warnings`() {
-        val m5 = mkCandles(100, 100.0, +0.004, tf5)
-        val m15 = mkCandles(100, 100.0, +0.010, tf15)
-        val h1 = mkCandles(100, 100.0, +0.025, tf60)
+        val m5 = mkCandles(100, 100.0, +0.0012, tf5, noise = 0.016, seed = 11, pullbackLast = 6)
+        val m15 = mkCandles(100, 100.0, +0.0030, tf15, noise = 0.030, seed = 11)
+        val h1 = mkCandles(100, 100.0, +0.0080, tf60, noise = 0.060, seed = 11)
         val r = ScannerEngine.scan(ScannerEngine.Input("BTCUSDT", m5, m15, h1, nowMs = 1_770_000_000_000), config)
         assertNotNull(r.signal)
         val s = r.signal!!

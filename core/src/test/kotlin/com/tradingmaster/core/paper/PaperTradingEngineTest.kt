@@ -95,7 +95,7 @@ class PaperTradingEngineTest {
         assertEquals(PaperStatus.OPEN, t.status) // TP1 is a partial exit; trade keeps running
         assertEquals(1, t.partialExits)
         assertTrue((t.realizedPnlUsdt ?: 0.0) > 0)
-        t = engine.step(t, candle(97.5, 99.0)) // tp2 closes the remainder
+        t = engine.step(t, candle(96.5, 99.0)) // tp2=97.0 is touched; closes the remainder
         assertEquals(PaperStatus.CLOSED, t.status)
         assertTrue((t.realizedPnlUsdt ?: 0.0) > 0)
     }

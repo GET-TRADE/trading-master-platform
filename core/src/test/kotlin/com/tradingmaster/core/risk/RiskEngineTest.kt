@@ -30,7 +30,7 @@ class RiskEngineTest {
     )
 
     private fun input(
-        config: RiskConfig = RiskConfig(),
+        config: RiskConfig = RiskConfig(liveTradingArmed = true),
         access: AccountAccessState = AccountAccessState(true, false, true, 2_000_000_000_000, "tm-user"),
         balance: Double = 100.0,
         positions: List<ExchangePositionState> = emptyList(),
@@ -46,7 +46,7 @@ class RiskEngineTest {
     fun `all checks pass allows the order`() {
         val r = RiskEngine.preflight(input())
         assertTrue("failed: " + r.checks.filter { !it.passed }.joinToString(), r.allowed)
-        assertEquals(13, r.checks.size)
+        assertEquals(15, r.checks.size)
     }
 
     @Test

@@ -60,7 +60,9 @@ object Indicators {
     }
 
     private fun rsiFrom(avgGain: Double, avgLoss: Double): Double =
-        if (avgLoss == 0.0) 100.0 else 100.0 - 100.0 / (1.0 + avgGain / avgLoss)
+        if (avgGain + avgLoss == 0.0) 50.0
+        else if (avgLoss == 0.0) 100.0
+        else 100.0 - 100.0 / (1.0 + avgGain / avgLoss)
 
     /** ATR using Wilder smoothing (true range with previous-close gaps). */
     fun atr(candles: List<Candle>, period: Int = 14): List<Double> {
@@ -137,7 +139,8 @@ object Indicators {
         if (candles.size < 2) return false
         for (i in 1 until candles.size) {
             val gap = candles[i].openTime - candles[i - 1].openTime
-            if (gap !in (timeframeMillis - 1)..(timeframeMillis * 2 + 1)) return false
+            // A single missing candle produces a 2x gap; only the exact step is contiguous.
+            if (gap !in (timeframeMillis - 1)..(timeframeMillis + 1)) return false
         }
         return true
     }

@@ -209,6 +209,14 @@ object ScannerEngine {
         reasonsList.add("Entry within %.2f ATR of the 9 EMA.".format(extension))
         if (swingHigh != null || swingLow != null) reasonsList.add("Nearest swing levels: high %s, low %s.".format(swingHigh ?: "-", swingLow ?: "-"))
 
+        val warnings = ArrayList<String>()
+        warnings.add("Score ranks this setup against others; it is not a probability of success.")
+        warnings.add("Futures trading involves substantial risk of loss. Verify all levels before entry.")
+        val staleAfterMs = Timeframe.M5.candleMillis() * 3
+        if (input.nowMs > last.closeTime + staleAfterMs) {
+            warnings.add("Signal data is stale relative to generation time (%d ms old); re-scan before acting.".format(input.nowMs - last.closeTime))
+        }
+
         val signal = TradeSignal(
             symbol = input.symbol,
             direction = direction,
@@ -229,7 +237,8 @@ object ScannerEngine {
             m5CloseTime = last.closeTime,
             m15CloseTime = m15.last().closeTime,
             h1CloseTime = h1.last().closeTime,
-            generatedAt = input.nowMs
+            generatedAt = input.nowMs,
+            warnings = warnings
         )
         return ScanResult(
             symbol = input.symbol,

@@ -95,12 +95,14 @@ object RiskEngine {
 
     fun roundStep(value: Double, step: Double): Double {
         if (step <= 0.0) return value
-        return floor(value / step + 1e-9) * step
+        // Decimal arithmetic: binary float (12345 * 0.01) yields 123.46000000000001.
+        return java.math.BigDecimal(value.toString())
+            .divide(java.math.BigDecimal(step.toString()), 18, java.math.RoundingMode.FLOOR)
+            .setScale(0, java.math.RoundingMode.FLOOR)
+            .multiply(java.math.BigDecimal(step.toString()))
+            .toDouble()
     }
 
     /** Exchange price rounding to tick size for limit orders. */
-    fun roundTick(price: Double, tick: Double): Double {
-        if (tick <= 0.0) return price
-        return kotlin.math.round(price / tick) * tick
-    }
+    fun roundTick(price: Double, tick: Double): Double = roundStep(price, tick)
 }
