@@ -50,19 +50,8 @@ jobs:
       - name: Verify APKs are signed
         run: |
           for apk in release/*.apk; do
-            if grep -q "APK Sig Block 42" <(python3 -c "
-            import sys
-            data = open('$apk','rb').read()
-            sys.exit(0 if b'APK Sig Block 42' in data else 1)
-            ") 2>/dev/null || python3 -c "
-            import sys
-            data = open('$apk','rb').read()
-            sys.exit(0 if b'APK Sig Block 42' in data else 1)
-            "; then
-              echo "SIGNED: $apk"
-            else
-              echo "ERROR: $apk is NOT signed — refusing to publish"; exit 1
-            fi
+            python3 -c "import sys; d=open('$apk','rb').read(); sys.exit(0 if b'APK Sig Block 42' in d else 1)"
+            if [ $? -eq 0 ]; then echo "SIGNED: $apk"; else echo "ERROR: $apk is NOT signed - refusing to publish"; exit 1; fi
           done
 
       - name: Create GitHub Release with APKs
