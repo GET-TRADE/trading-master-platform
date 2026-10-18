@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -40,7 +41,7 @@ class ProSettingsViewModel(private val container: ProContainer) : ViewModel() {
             } catch (e: Exception) { null }
             val obj = access?.let { runCatching { kotlinx.serialization.json.Json.parseToJsonElement(it.toString()) }.getOrNull() }
             _state.value = ProSettingsUi(
-                email = container.session.email,
+                email = container.session.userId,
                 accessStatus = obj?.let { (it as? kotlinx.serialization.json.JsonObject)?.get("status")?.toString() },
                 subscriptionActive = obj?.let { (it as? kotlinx.serialization.json.JsonObject)?.get("subscription_active")?.toString() == "\"true\"" } ?: false,
                 deviceKey = container.deviceIdentity.stableKey,
