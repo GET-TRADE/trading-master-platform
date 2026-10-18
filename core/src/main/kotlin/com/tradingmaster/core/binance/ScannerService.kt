@@ -37,7 +37,7 @@ class ScannerService(
         universe.manualSymbol?.let { manual ->
             val m = perpetuals.firstOrNull { it.symbol.equals(manual, ignoreCase = true) }
                 ?: throw BinanceError.Exchange(-1121, "Symbol $manual is not a supported USDT perpetual or is not trading.")
-            return listOf(m.toEligible(turnoverBySymbol[m.symbol]))
+            return listOf(m.toEligible(turnoverBySymbol[m.symbol] ?: 0.0))
         }
 
         return perpetuals

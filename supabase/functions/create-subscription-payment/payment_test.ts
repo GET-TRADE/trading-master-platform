@@ -5,8 +5,10 @@ Deno.test("validatePaymentRequest validates payment input payload", () => {
   const invalidMethod = validatePaymentRequest({ plan_id: "plan_123", method: "invalid_method" });
   assertEquals(invalidMethod.valid, false);
 
-  const missingPlan = validatePaymentRequest({ method: "binance_pay" });
-  assertEquals(missingPlan.valid, false);
+  // plan_id is intentionally optional: the server selects the active plan.
+  const noPlan = validatePaymentRequest({ method: "binance_pay" });
+  assertEquals(noPlan.valid, true);
+  assertEquals(noPlan.data?.plan_id, undefined);
 
   const validReq = validatePaymentRequest({
     plan_id: "plan_123",

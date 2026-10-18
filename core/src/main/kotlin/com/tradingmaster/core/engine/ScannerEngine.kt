@@ -7,6 +7,7 @@ import com.tradingmaster.core.model.ScanResult
 import com.tradingmaster.core.model.Timeframe
 import com.tradingmaster.core.model.TradeSignal
 import kotlin.math.abs
+import kotlin.math.max
 
 /**
  * Deterministic futures scanner. Same inputs always produce the same output.
