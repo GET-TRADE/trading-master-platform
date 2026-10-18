@@ -9,21 +9,22 @@
    (`TradingMaster-`, `TradingMasterAdmin-`, `TradingMasterPro-<tag>.apk`)
    and attached to a GitHub Release with generated notes.
 
-These APKs are **unsigned test builds** until a signing key is configured.
+Since v0.1.1 the APKs are **signed** with the Trading Master release key. The
+workflow refuses to publish an unsigned APK. The keystore lives only in
+repository secrets (`KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`,
+`KEY_PASSWORD`); the owner holds the only offline copy — keep it safe, it is
+required to publish updates.
 
 ## Signed production builds (optional)
 
 Never commit a keystore. Instead:
 
-1. Generate a keystore locally (e.g. Termux + keytool).
-2. Add repository secrets:
-   - `KEYSTORE_BASE64` — base64 of the `.jks`
-   - `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`
-3. In the release workflow, decode the keystore into a file and add a signing
-   config to each app module, e.g. in `android { signingConfigs { release { ... } } }`
-   reading the secrets, then set `signingConfig = signingConfigs.release` in the
-   release build type. Rebuild. From then on releases are signed and updatable
-   without uninstalling.
+Signing is already wired: the release workflow decodes `KEYSTORE_BASE64` and
+passes AGP injected-signing properties (`-Pandroid.injected.signing.*`) to
+`assembleRelease`, then verifies each APK carries a v2 signature block before
+publishing. To rotate the key someday: generate a new keystore, replace the
+four secrets, and note that a new signature requires uninstall/reinstall on
+devices.
 
 ## Versioning
 
