@@ -246,7 +246,7 @@ class AdminRepository(
     suspend fun getAuditLogs(limit: Int = 50): Result<List<AuditLog>> = withContext(Dispatchers.IO) {
         safeApiCall {
             val body = buildJsonObject {
-                put("limit", limit)
+                put("limit_val", limit)
             }.toString()
             val result = supabaseClient.rpc("admin_get_audit", body)
             JsonParsers.parseAuditList(result)
@@ -256,7 +256,7 @@ class AdminRepository(
     suspend fun getErrorLogs(limit: Int = 50): Result<List<ErrorLog>> = withContext(Dispatchers.IO) {
         safeApiCall {
             val body = buildJsonObject {
-                put("limit", limit)
+                put("limit_val", limit)
             }.toString()
             val result = supabaseClient.rpc("admin_get_errors", body)
             JsonParsers.parseErrorList(result)

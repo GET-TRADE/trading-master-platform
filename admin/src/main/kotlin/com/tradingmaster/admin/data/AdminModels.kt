@@ -1,6 +1,8 @@
 package com.tradingmaster.admin.data
 
 import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.booleanOrNull
@@ -76,33 +78,61 @@ data class BackendHealthState(
 
 object JsonParsers {
 
+    private fun JsonObject.str(key: String): String? =
+        (this[key] as? JsonPrimitive)?.takeIf { it !is JsonNull }?.content
+
+    private fun JsonObject.objs(key: String): List<JsonObject> {
+        val arr = this[key] as? JsonArray ?: return emptyList()
+        return arr.mapNotNull { it as? JsonObject }
+    }
+
     fun parseUserList(jsonElement: JsonElement): List<AdminUser> {
         return try {
             val array = if (jsonElement is JsonArray) jsonElement else jsonElement.jsonArray
-            array.mapNotNull { element ->
+            array.flatMap { element ->
                 val obj = element.jsonObject
-                val userId = obj["user_id"]?.jsonPrimitive?.content
-                    ?: obj["id"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                val email = obj["email"]?.jsonPrimitive?.content ?: "unknown"
-                val whatsapp = obj["whatsapp"]?.jsonPrimitive?.content
-                val appKey = obj["app_key"]?.jsonPrimitive?.content
-                val status = obj["status"]?.jsonPrimitive?.content ?: "pending"
-                val subExpires = obj["subscription_expires_at"]?.jsonPrimitive?.content
-                val deviceId = obj["device_id"]?.jsonPrimitive?.content
-                val deviceStatus = obj["device_status"]?.jsonPrimitive?.content
-                val createdAt = obj["created_at"]?.jsonPrimitive?.content
+                val userId = obj.str("user_id") ?: obj.str("id") ?: return@flatMap emptyList()
+                val email = obj.str("email") ?: "unknown"
+                val whatsapp = obj.str("whatsapp")
+                val createdAt = obj.str("created_at")
 
-                AdminUser(
-                    userId = userId,
-                    email = email,
-                    whatsapp = whatsapp,
-                    appKey = appKey,
-                    status = status,
-                    subscriptionExpiresAt = subExpires,
-                    deviceId = deviceId,
-                    deviceStatus = deviceStatus,
-                    createdAt = createdAt
-                )
+                val appAccessRows = obj.objs("app_access")
+                if (appAccessRows.isEmpty()) {
+                    // Legacy flat shape or a user with no access rows yet.
+                    listOf(
+                        AdminUser(
+                            userId = userId,
+                            email = email,
+                            whatsapp = whatsapp,
+                            appKey = obj.str("app_key"),
+                            status = obj.str("status") ?: "pending",
+                            subscriptionExpiresAt = obj.str("subscription_expires_at"),
+                            deviceId = obj.str("device_id"),
+                            deviceStatus = obj.str("device_status"),
+                            createdAt = createdAt
+                        )
+                    )
+                } else {
+                    val devices = obj.objs("devices")
+                    appAccessRows.map { aa ->
+                        val appKey = aa.str("app_key")
+                        // Prefer this app's oldest pending device; fall back to its newest device row.
+                        val appDevices = devices.filter { it.str("app_key") == appKey }
+                        val shown = appDevices.firstOrNull { it.str("status") == "pending" }
+                            ?: appDevices.firstOrNull()
+                        AdminUser(
+                            userId = userId,
+                            email = email,
+                            whatsapp = whatsapp,
+                            appKey = appKey,
+                            status = aa.str("status") ?: "pending",
+                            subscriptionExpiresAt = aa.str("subscription_expires_at"),
+                            deviceId = shown?.str("id"),
+                            deviceStatus = shown?.str("status"),
+                            createdAt = createdAt
+                        )
+                    }
+                }
             }
         } catch (e: Exception) {
             emptyList()
@@ -171,7 +201,7 @@ object JsonParsers {
                 val obj = element.jsonObject
                 val id = obj["id"]?.jsonPrimitive?.content ?: return@mapNotNull null
                 val userId = obj["user_id"]?.jsonPrimitive?.content
-                val email = obj["email"]?.jsonPrimitive?.content
+                val email = obj["user_email"]?.jsonPrimitive?.content ?: obj["email"]?.jsonPrimitive?.content
                 val method = obj["method"]?.jsonPrimitive?.content
                 val status = obj["status"]?.jsonPrimitive?.content ?: "pending"
                 val amountPkr = obj["amount_pkr"]?.jsonPrimitive?.doubleOrNull ?: 0.0
@@ -202,9 +232,9 @@ object JsonParsers {
             array.mapNotNull { element ->
                 val obj = element.jsonObject
                 val id = obj["id"]?.jsonPrimitive?.content ?: return@mapNotNull null
-                val actor = obj["actor"]?.jsonPrimitive?.content
+                val actor = obj["actor_id"]?.jsonPrimitive?.content ?: obj["actor"]?.jsonPrimitive?.content
                 val action = obj["action"]?.jsonPrimitive?.content
-                val target = obj["target"]?.jsonPrimitive?.content
+                val target = obj["target_user_id"]?.jsonPrimitive?.content ?: obj["target"]?.jsonPrimitive?.content
                 val details = obj["details"]?.jsonPrimitive?.content ?: obj["details"]?.toString()
                 val createdAt = obj["created_at"]?.jsonPrimitive?.content
 
