@@ -35,19 +35,19 @@ jobs:
         run: ./gradlew :app:assembleDebug :admin:assembleDebug :pro:assembleDebug
 
       - name: Upload Trading Master APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trading-master-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
 
       - name: Upload Admin APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trading-master-admin-debug-apk
           path: admin/build/outputs/apk/debug/admin-debug.apk
 
       - name: Upload Pro APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: trading-master-pro-debug-apk
           path: pro/build/outputs/apk/debug/pro-debug.apk
