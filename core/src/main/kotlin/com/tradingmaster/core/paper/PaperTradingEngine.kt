@@ -7,6 +7,8 @@ import com.tradingmaster.core.model.PaperSimAssumptions
 import com.tradingmaster.core.model.PaperTrade
 import com.tradingmaster.core.model.TradeSignal
 
+import kotlin.math.abs
+
 /**
  * Paper trading simulation. Completely isolated from live execution:
  * this engine has NO exchange client and never sends orders.
