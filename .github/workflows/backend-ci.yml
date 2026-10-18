@@ -1,0 +1,46 @@
+name: Backend CI
+
+on:
+  push:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - '.github/workflows/backend-ci.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v1.45.0
+
+      - name: Check TypeScript files
+        run: deno check supabase/functions/**/*.ts
+
+      - name: Run Deno tests
+        run: deno test supabase/ --allow-all
+
+      - name: Migration Secret & Service Role Literal Guard
+        run: |
+          echo "Scanning migration SQL files for prohibited secret/service_role literals..."
+          if grep -iE "SERVICE_ROLE_[A-Za-z0-9_-]+" supabase/migrations/*.sql; then
+            echo "ERROR: Found prohibited SERVICE_ROLE secret literal in migrations!"
+            exit 1
+          fi
+          if grep -iE "(sk_live|sk_test|key_[0-9a-zA-Z]{20,})" supabase/migrations/*.sql; then
+            echo "ERROR: Found potential hardcoded API secret key in migrations!"
+            exit 1
+          fi
+          echo "Migration secret guard passed successfully."

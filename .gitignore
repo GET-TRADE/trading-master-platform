@@ -1,0 +1,27 @@
+# Build outputs
+build/
+app/build/
+admin/build/
+pro/build/
+core/build/
+captures/
+.externalNativeBuild
+.cxx
+
+# IDE
+.idea/
+*.iml
+.gradle/
+local.properties
+.DS_Store
+
+# Secrets — never commit credentials of any kind
+*.jks
+*.keystore
+keystore.properties
+secrets.properties
+.env
+*.env
+
+# Native crash reports
+hs_err_pid*

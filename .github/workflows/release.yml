@@ -1,0 +1,54 @@
+name: Release APKs
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish release APKs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run all tests
+        run: ./gradlew testDebugUnitTest
+
+      - name: Build release APKs (unsigned unless signing secrets configured)
+        run: ./gradlew :app:assembleRelease :admin:assembleRelease :pro:assembleRelease
+
+      - name: Rename artifacts
+        run: |
+          mkdir -p release
+          cp app/build/outputs/apk/release/app-release-unsigned.apk release/TradingMaster-${GITHUB_REF_NAME}.apk 2>/dev/null || cp app/build/outputs/apk/release/app-release.apk release/TradingMaster-${GITHUB_REF_NAME}.apk
+          cp admin/build/outputs/apk/release/admin-release-unsigned.apk release/TradingMasterAdmin-${GITHUB_REF_NAME}.apk 2>/dev/null || cp admin/build/outputs/apk/release/admin-release.apk release/TradingMasterAdmin-${GITHUB_REF_NAME}.apk
+          cp pro/build/outputs/apk/release/pro-release-unsigned.apk release/TradingMasterPro-${GITHUB_REF_NAME}.apk 2>/dev/null || cp pro/build/outputs/apk/release/pro-release.apk release/TradingMasterPro-${GITHUB_REF_NAME}.apk
+          ls -la release/
+
+      - name: Create GitHub Release with APKs
+        uses: softprops/action-gh-release@v1
+        with:
+          generate_release_notes: true
+          body: |
+            Trading Master platform release ${{ github.ref_name }}
+
+            - TradingMaster: user scanning & paper trading app
+            - TradingMasterAdmin: administrator app
+            - TradingMasterPro: premium analysis app
+
+            These APKs are unsigned test builds unless a signing key is configured
+            via repository secrets (see docs/RELEASE.md). Installing them requires
+            allowing installation from this source.
+          files: release/*.apk

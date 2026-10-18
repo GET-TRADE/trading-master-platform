@@ -1,0 +1,53 @@
+name: Android CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Test and build APKs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests (core + all apps)
+        run: ./gradlew testDebugUnitTest --parallel
+
+      - name: Static analysis (lint, non-blocking report)
+        run: ./gradlew :app:lintDebug :admin:lintDebug :pro:lintDebug
+        continue-on-error: true
+
+      - name: Build debug APKs
+        run: ./gradlew :app:assembleDebug :admin:assembleDebug :pro:assembleDebug
+
+      - name: Upload Trading Master APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: trading-master-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Upload Admin APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: trading-master-admin-debug-apk
+          path: admin/build/outputs/apk/debug/admin-debug.apk
+
+      - name: Upload Pro APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: trading-master-pro-debug-apk
+          path: pro/build/outputs/apk/debug/pro-debug.apk
